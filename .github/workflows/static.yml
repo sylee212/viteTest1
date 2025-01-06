@@ -30,13 +30,20 @@ jobs:
       - name: Install dependencies
         run: |
           npm install || echo "npm install failed" > error.log
+          # Print the contents of error.log if the install fails
+          if [ -f error.log ]; then cat error.log; fi
 
       - name: Build the project
         run: |
           npm run build || echo "npm run build failed" >> error.log
+          # Print the contents of error.log if the build fails
+          if [ -f error.log ]; then cat error.log; fi
 
       - name: List dist folder
-        run: ls -la ./dist
+        run: |
+          echo "Listing contents of the dist folder"
+          ls -la ./dist || echo "dist folder not found" >> error.log
+          if [ -f error.log ]; then cat error.log; fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -56,7 +63,7 @@ jobs:
 
       - name: Upload error log artifact
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: error-log
           path: error.log
