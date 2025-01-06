@@ -39,7 +39,7 @@ jobs:
           # Log any errors from the build step
           if [ $? -ne 0 ]; then echo "npm run build failed" >> error.log; fi
 
-      - name: Debug: List dist folder
+      - name: List dist folder
         run: ls -la ./dist
 
       - name: Upload artifact
@@ -57,7 +57,7 @@ jobs:
         run: |
           echo "Saving error log to GitHub artifacts..."
           cat error.log
-        # Upload the error log file as an artifact for review
+
       - name: Upload error log artifact
         if: failure()
         uses: actions/upload-artifact@v3
