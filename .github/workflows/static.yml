@@ -57,7 +57,10 @@ jobs:
         run: |
           echo "Saving error log to GitHub artifacts..."
           cat error.log
-          # Upload the error log file as an artifact for review
-          upload-artifact:
-            name: error-log
-            path: error.log
+        # Upload the error log file as an artifact for review
+      - name: Upload error log artifact
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: error-log
+          path: error.log
