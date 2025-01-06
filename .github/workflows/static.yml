@@ -29,15 +29,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
-          # Log any errors from the npm install step
-          if [ $? -ne 0 ]; then echo "npm install failed" >> error.log; fi
+          npm install || echo "npm install failed" > error.log
 
       - name: Build the project
         run: |
-          npm run build
-          # Log any errors from the build step
-          if [ $? -ne 0 ]; then echo "npm run build failed" >> error.log; fi
+          npm run build || echo "npm run build failed" >> error.log
 
       - name: List dist folder
         run: ls -la ./dist
@@ -56,7 +52,7 @@ jobs:
         if: failure()
         run: |
           echo "Saving error log to GitHub artifacts..."
-          cat error.log
+          if [ -f error.log ]; then cat error.log; else echo "No error log created."; fi
 
       - name: Upload error log artifact
         if: failure()
