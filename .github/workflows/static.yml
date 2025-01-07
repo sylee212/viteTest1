@@ -42,6 +42,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: viteTest1/dist
+          name: artifact-dist # Ensure this artifact is named explicitly
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
