@@ -1,23 +1,18 @@
-name: Deploy static content to Pages
+name: Build and Deploy to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
-  workflow_dispatch:
+    branches:
+      - main
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -29,41 +24,24 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install || echo "npm install failed" > error.log
-          # Print the contents of error.log if the install fails
-          if [ -f error.log ]; then cat error.log; fi
+          cd viteTest1
+          npm install || { echo "npm install failed"; exit 1; }
 
       - name: Build the project
         run: |
-          cd viteTest1 || npm run build || echo "npm run build failed" >> error.log
-          # Print the contents of error.log if the build fails
-          if [ -f error.log ]; then cat error.log; fi
+          cd viteTest1
+          npm run build || { echo "Build failed"; exit 1; }
 
-      - name: List dist folder
+      - name: Verify dist folder
         run: |
-          echo "Listing contents of the dist folder"
-          ls -la ./dist || echo "dist folder not found" >> error.log
-          if [ -f error.log ]; then cat error.log; fi
+          cd viteTest1
+          echo "Checking for dist folder"
+          ls -la dist || { echo "dist folder not found"; exit 1; }
 
-      - name: Upload artifact
+      - name: Upload dist folder to Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: viteTest1/dist
 
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-        continue-on-error: true  # This ensures the workflow doesn't fail immediately after deploy errors
-
-      - name: Save error log
-        if: failure()
-        run: |
-          echo "Saving error log to GitHub artifacts..."
-          if [ -f error.log ]; then cat error.log; else echo "No error log created."; fi
-
-      - name: Upload error log artifact
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: error-log
-          path: error.log
+        uses: actions/deploy-pages@v1
