@@ -38,11 +38,15 @@ jobs:
           echo "Checking for dist folder"
           ls -la dist || { echo "dist folder not found"; exit 1; }
 
+      - name: Navigate to viteTest1
+        run: cd viteTest1
+        
       - name: Upload dist folder to Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./viteTest1/dist
-          name: artifact-dist # Ensure this artifact is named explicitly
+          path: dist
+          name: artifact-dist
+
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
