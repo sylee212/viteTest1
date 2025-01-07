@@ -1,69 +1,49 @@
-name: Deploy static content to Pages
+name: Deploy
 
 on:
   push:
-    branches: ["main"]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  build:
+    name: Build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: Setup Node
         uses: actions/setup-node@v3
-        with:
-          node-version: 18
 
       - name: Install dependencies
-        run: |
-          npm install || echo "npm install failed" > error.log
-          # Print the contents of error.log if the install fails
-          if [ -f error.log ]; then cat error.log; fi
+        uses: bahmutov/npm-install@v1
 
-      - name: Build the project
-        run: |
-          npm run dev || echo "npm run build failed" >> error.log
-          # Print the contents of error.log if the build fails
-          if [ -f error.log ]; then cat error.log; fi
+      - name: Build project
+        run: npm run build
 
-      - name: List dist folder
-        run: |
-          echo "Listing contents of the dist folder"
-          ls -la ./dist || echo "dist folder not found" >> error.log
-          if [ -f error.log ]; then cat error.log; fi
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload production-ready build files
+        uses: actions/upload-artifact@v3
         with:
+          name: production-files
+          path: ./dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: production-files
           path: ./dist
 
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-        continue-on-error: true  # This ensures the workflow doesn't fail immediately after deploy errors
-
-      - name: Save error log
-        if: failure()
-        run: |
-          echo "Saving error log to GitHub artifacts..."
-          if [ -f error.log ]; then cat error.log; else echo "No error log created."; fi
-
-      - name: Upload error log artifact
-        if: failure()
-        uses: actions/upload-artifact@v4
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          name: error-log
-          path: error.log
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
