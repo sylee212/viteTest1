@@ -35,7 +35,7 @@ jobs:
 
       - name: Build the project
         run: |
-          npm run build || echo "npm run build failed" >> error.log
+          cd viteTest1 || npm run build || echo "npm run build failed" >> error.log
           # Print the contents of error.log if the build fails
           if [ -f error.log ]; then cat error.log; fi
 
